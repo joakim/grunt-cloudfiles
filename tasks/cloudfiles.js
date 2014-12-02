@@ -12,22 +12,25 @@ module.exports = function(grunt) {
   grunt.registerMultiTask('cloudfiles', 'Move stuff to the cloud', function() {
     var done = this.async(),
         config = this.data,
-        enableCdn = config.enableCdn !== false;
+        enableCdn = false;
 
-    var clientConfig = {
-      'provider': 'rackspace',
-      'username': config.user,
-      'apiKey': config.key
-    };
+    var clientConfig = _.omit(config, ['enableCdn', 'upload', 'user', 'pass', 'key']);
 
-    // Optional config parameter authUrl - Used to overwrite the authUrl as defined by pkgcloud
-    if(config.hasOwnProperty("authUrl")){
-      clientConfig.authUrl = config.authUrl;
+    if (!config.hasOwnProperty('provider')) {
+      clientConfig.provider = 'rackspace';
+    }
+    if (clientConfig.provider == 'rackspace') {
+      enableCdn = config.enableCdn !== false;
     }
 
-    // Optionally set the region (i.e. DFW/ORD/SYD...)
-    if (config.hasOwnProperty("region")) {
-      clientConfig.region = config.region;
+    if (config.hasOwnProperty('user')){
+      clientConfig.username = config.user;
+    }
+    if (config.hasOwnProperty('pass')){
+      clientConfig.password = config.pass;
+    }
+    if (config.hasOwnProperty('key')){
+      clientConfig.apiKey = config.key;
     }
 
     client = pkgcloud.storage.createClient(clientConfig);
