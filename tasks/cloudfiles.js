@@ -125,6 +125,10 @@ module.exports = function(grunt) {
       ufile = stripComponents(ufile, strip);
     }
 
+    if (dest) {
+        ufile = dest + ufile;
+    }
+
     hashFile(fileName, function (err, hash) {
       if (err) {
         return next(err);
@@ -138,7 +142,7 @@ module.exports = function(grunt) {
           grunt.log.writeln('Uploading ' + fileName + ' to ' + container.name + ' (NEW)');
           client.upload({
             container: container,
-            remote: dest + ufile,
+            remote: ufile,
             local: fileName,
             headers: headers
           }, function (err) {
@@ -149,7 +153,7 @@ module.exports = function(grunt) {
           grunt.log.writeln('Updating ' + fileName + ' to ' + container.name + ' (MD5 Diff)');
           client.upload({
             container: container,
-            remote: dest + ufile,
+            remote: ufile,
             local: fileName,
             headers: headers
           }, function (err) {
