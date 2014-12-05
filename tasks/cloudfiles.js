@@ -104,9 +104,31 @@ module.exports = function(grunt) {
 
     if (upload.dest === undefined) { upload.dest = '' }
 
+    var maxAttemptsPerFile = 5;
+
     async.forEachLimit(files, 10, function(file, next) {
+
+      var attempt = 1;
+
+      var onSyncFile = function(err) {
+        if(err) {
+            grunt.log.writeln('Error syncing file: ' + file + ' to ' + container.name + ', attempt: ' + attempt + '/' + maxAttemptsPerFile);
+
+            attempt++;
+
+            if(attempt < maxAttemptsPerFile) {
+                syncFile(file, container, upload.dest, upload.stripcomponents, upload.headers, onSyncFile);
+            } else {
+                next(err);
+            }
+
+        } else {
+            next();
+        }
+      }
+
       if (grunt.file.isFile(file)) {
-        syncFile(file, container, upload.dest, upload.stripcomponents, upload.headers, next);
+        syncFile(file, container, upload.dest, upload.stripcomponents, upload.headers, onSyncFile);
       }
       else {
         next();
