@@ -4,7 +4,7 @@
   "description": "Grunt task to work with Rackspace Cloud Files and OpenStack Swift",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rtgibbons/grunt-cloudfiles.git"
+    "url": "https://github.com/joakim/grunt-cloudfiles.git"
   },
   "main": "grunt.js",
   "keywords": [
@@ -35,6 +35,10 @@
     {
       "name": "Kobi Meirson",
       "email": "kobi@right.co.il"
+    },
+    {
+      "name": "Joakim Stai",
+      "email": "stai@kollegorna.se"
     }
   ],
   "license": "MIT",
