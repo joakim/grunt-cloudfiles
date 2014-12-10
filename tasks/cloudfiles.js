@@ -116,56 +116,61 @@ module.exports = function(grunt) {
     });
   }
 
-  function syncFile(fileName, container, dest, strip, headers, callback) {
-
-    var ufile = fileName;
-    headers = headers || {};
+  function syncFile(local, container, dest, strip, headers, callback) {
+    var remote = local;
 
     if (strip !== undefined) {
-      ufile = stripComponents(ufile, strip);
+      remote = stripComponents(remote, strip);
     }
 
     if (dest) {
-        ufile = dest + ufile;
+      remote = dest + remote;
     }
 
-    hashFile(fileName, function (err, hash) {
+    hashFile(local, function (err, hash) {
       if (err) {
         return next(err);
       }
 
-      client.getFile(container, ufile, function (err, file) {
+      client.getFile(container, remote, function (err, file) {
         if (err && !(err.statusCode === 404)) {
           callback(err);
         }
         else if (err && err.statusCode === 404) {
-          grunt.log.writeln('Uploading ' + fileName + ' to ' + container.name + ' (NEW)');
-          client.upload({
-            container: container,
-            remote: ufile,
-            local: fileName,
-            headers: headers
-          }, function (err) {
-            callback(err);
-          });
+          grunt.log.writeln('Uploading ' + local + ' to ' + container.name + ' (NEW)');
+          uploadFile(local, remote, container, headers, callback);
         }
         else if (file && file.etag !== hash) {
-          grunt.log.writeln('Updating ' + fileName + ' to ' + container.name + ' (MD5 Diff)');
-          client.upload({
-            container: container,
-            remote: ufile,
-            local: fileName,
-            headers: headers
-          }, function (err) {
-            callback(err);
-          });
+          grunt.log.writeln('Updating ' + local + ' to ' + container.name + ' (MD5 Diff)');
+          uploadFile(local, remote, container, headers, callback);
         }
         else {
-          grunt.log.writeln('Skipping ' + fileName + ' in ' + container.name + ' (MD5 Match)');
+          grunt.log.writeln('Skipping ' + local + ' in ' + container.name + ' (MD5 Match)');
           callback();
         }
       })
     });
+  }
+
+  function uploadFile(local, remote, container, headers, callback) {
+    var file = fs.createReadStream(local);
+
+    var upload = client.upload({
+      container: container.name,
+      remote: remote,
+      local: local,
+      headers: headers
+    });
+
+    upload.on('error', function(err) {
+      callback(err);
+    });
+
+    upload.on('success', function(file) {
+      callback();
+    });
+
+    file.pipe(upload);
   }
 
   function createContainer(containerName, enableCdn, callback) {
